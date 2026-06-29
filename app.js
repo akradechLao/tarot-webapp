@@ -112,6 +112,7 @@ const TOPIC_KEYWORDS = {
 
 // ========== State ==========
 let tarotData = {};
+let tarotDetailed = {};
 let meaningsDB = {};
 
 // ========== DOM Elements ==========
@@ -125,6 +126,7 @@ const predictionContent = document.getElementById('prediction-content');
 // ========== Initialize ==========
 document.addEventListener('DOMContentLoaded', async () => {
     await loadTarotData();
+    await loadTarotDetailed();
     await loadMeanings();
     updateCardCount();
     spreadSelect.addEventListener('change', updateCardCount);
@@ -142,16 +144,41 @@ async function loadTarotData() {
     }
 }
 
+async function loadTarotDetailed() {
+    try {
+        const response = await fetch('tarot_detailed.json');
+        tarotDetailed = await response.json();
+    } catch (error) {
+        console.error('Error loading tarot detailed:', error);
+        tarotDetailed = {};
+    }
+}
+
 async function loadMeanings() {
     try {
         const response = await fetch('meanings.txt');
         const text = await response.text();
-        const pattern = /((?:The |Ace of |Queen of |King of |Knight of |Page of |มหาดเล็ก|อัศวิน|ราชินี|ราชา)?[^\n]{2,40}?)\s*หมายถึง\s*([^\n]+)/g;
-        let match;
-        while ((match = pattern.exec(text)) !== null) {
-            const name = match[0].split('หมายถึง')[0].trim().replace(/\s+$/, '');
-            const meaning = match[2].trim();
-            meaningsDB[name.toLowerCase()] = meaning;
+        // Parse Thai tarot meanings from the text file
+        const lines = text.split('\n');
+        let currentCategory = '';
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            
+            // Detect category headers
+            if (trimmed.includes('Major Arcana')) currentCategory = 'major';
+            else if (trimmed.includes('ไพ่ถ้วย')) currentCategory = 'cups';
+            else if (trimmed.includes('ไพ่เหรียญ')) currentCategory = 'pentacles';
+            else if (trimmed.includes('ไพ่ดาบ')) currentCategory = 'swords';
+            else if (trimmed.includes('ไพ่ไม้เท้า')) currentCategory = 'wands';
+            
+            // Parse card meanings
+            const match = trimmed.match(/^(.+?)\s*หมายถึง\s*(.+)$/);
+            if (match) {
+                const cardName = match[1].trim();
+                const meaning = match[2].trim();
+                meaningsDB[cardName.toLowerCase()] = meaning;
+            }
         }
     } catch (error) {
         console.error('Error loading meanings:', error);
@@ -179,18 +206,32 @@ function detectTopic(question) {
     return "ทั่วไป";
 }
 
-// ========== Lookup Extended Meaning ==========
-function lookupExtendedMeaning(cardName) {
-    const nameLower = cardName.toLowerCase();
-    if (meaningsDB[nameLower]) {
-        return meaningsDB[nameLower];
+// ========== Get Context Meaning ==========
+function getContextMeaning(cardIndex, topic) {
+    const card = tarotDetailed[cardIndex];
+    if (!card) return "";
+    
+    switch(topic) {
+        case "ความรัก": return card.love || "";
+        case "การงาน": return card.work || "";
+        case "การเงิน": return card.money || "";
+        case "สุขภาพ": return card.health || "";
+        default: return card.love || card.work || card.money || card.health || "";
     }
-    for (const [key, val] of Object.entries(meaningsDB)) {
-        if (nameLower.includes(key) || key.includes(nameLower)) {
-            return val;
-        }
-    }
-    return "";
+}
+
+// ========== Get Advice ==========
+function getAdvice(cardIndex) {
+    const card = tarotDetailed[cardIndex];
+    if (!card) return "";
+    return card.advice || "";
+}
+
+// ========== Get Full Meaning ==========
+function getFullMeaning(cardIndex) {
+    const card = tarotDetailed[cardIndex];
+    if (!card) return "";
+    return card.meaning_full || "";
 }
 
 // ========== Draw Cards ==========
@@ -215,7 +256,7 @@ function drawCards() {
     const cardsData = [];
     indices.forEach((idx, i) => {
         const cardData = tarotData[String(idx)] || { name: "Unknown", meaning: "ไม่มีข้อมูล" };
-        cardsData.push(cardData);
+        cardsData.push({ ...cardData, index: idx });
 
         const cardItem = document.createElement('div');
         cardItem.className = 'card-item';
@@ -248,23 +289,59 @@ function buildPrediction(cardsData, spreadKey, question, topic) {
 
     let html = '';
 
+    // Question
     if (question) {
         html += `<div class="prediction-question">"${question}"</div>`;
     }
 
+    // Topic badge
+    if (topic !== "ทั่วไป") {
+        html += `<div class="topic-badge">${getTopicIcon(topic)} ${topic}</div>`;
+    }
+
+    // Spread info
     html += `<div class="prediction-spread">รูปแบบ: ${spreadKey}</div>`;
 
+    // Cards
     cardsData.forEach((card, i) => {
         const cardName = card.name || "Unknown";
-        const cardMeaning = card.meaning || "";
-        const extended = lookupExtendedMeaning(cardName);
+        const cardIndex = card.index;
+        const meaning = card.meaning || "";
+        const meaningFull = getFullMeaning(cardIndex);
+        const contextMeaning = getContextMeaning(cardIndex, topic);
+        const advice = getAdvice(cardIndex);
+        const specialCard = getSpecialCardMessage(cardName);
 
         html += `
             <div class="prediction-card">
                 <div class="card-position-title">▸ ${positions[i]} (${descriptions[i]})</div>
                 <div class="card-prompt">${prompts[i]} — <span class="card-name-highlight">${cardName}</span></div>
-                <div class="card-meaning">ความหมาย: ${cardMeaning}</div>
-                ${extended ? `<div class="card-extended">"${extended}"</div>` : ''}
+                
+                <div class="meaning-section">
+                    <div class="meaning-label">📖 ความหมาย:</div>
+                    <div class="meaning-text">${meaningFull || meaning}</div>
+                </div>
+                
+                ${contextMeaning ? `
+                <div class="context-section">
+                    <div class="context-label">💡 ความหมายในบริบท (${topic}):</div>
+                    <div class="context-text">${contextMeaning}</div>
+                </div>
+                ` : ''}
+                
+                ${advice ? `
+                <div class="advice-section">
+                    <div class="advice-label">💫 คำแนะนำ:</div>
+                    <div class="advice-text">${advice}</div>
+                </div>
+                ` : ''}
+                
+                ${specialCard ? `
+                <div class="special-card">
+                    <span class="special-icon">⭐</span>
+                    <span class="special-text">${specialCard}</span>
+                </div>
+                ` : ''}
             </div>
         `;
     });
@@ -281,66 +358,187 @@ function buildPrediction(cardsData, spreadKey, question, topic) {
     return html;
 }
 
+// ========== Get Topic Icon ==========
+function getTopicIcon(topic) {
+    const icons = {
+        "ความรัก": "❤️",
+        "การงาน": "💼",
+        "การเงิน": "💰",
+        "สุขภาพ": "🏥",
+        "การเดินทาง": "✈️"
+    };
+    return icons[topic] || "🔮";
+}
+
+// ========== Get Special Card Message ==========
+function getSpecialCardMessage(cardName) {
+    const specialCards = {
+        "The Star": "ไพ่ดวงดาวส่องแสงนำทาง ความหวังและความสุขกำลังจะมาถึง",
+        "The Sun": "ไพ่ดวงอาทิตย์ส่องแสง ความสุขและความสำเร็จกำลังจะมาถึง",
+        "Death": "แม้จะมีการเปลี่ยนแปลงครั้งใหญ่ แต่นั่นคือจุดเริ่มต้นของสิ่งใหม่ๆ ที่ดีกว่าเดิม",
+        "The Tower": "แม้จะมีการเปลี่ยนแปลงกะทันหัน แต่นั่นคือโอกาสที่จะเริ่มต้นใหม่",
+        "The Fool": "ไพ่ The Fool บอกให้ก้าวออกมาจากกรอบเดิมๆ ลองสิ่งใหม่ๆ ดูบ้าง",
+        "The Lovers": "ไพ่ The Lovers บ่งบอกถึงความรักและการตัดสินใจที่สำคัญ",
+        "Strength": "ไพ่ Strength บ่งบอกถึงความแข็งแกร่งภายใน คุณมีพลังพอที่จะฝ่าฟันทุกอย่าง",
+        "The World": "ไพ่ The World บ่งบอกถึงความสำเร็จที่สมบูรณ์ ชีวิตเติมเต็ม",
+        "Wheel of Fortune": "ไพ่ Wheel of Fortune บ่งบอกถึงโชคชะตาที่กำลังจะเปลี่ยนไปในทางที่ดี"
+    };
+    return specialCards[cardName] || "";
+}
+
 // ========== Generate Summary ==========
 function generateSummary(cardsData, topic, question, spreadKey) {
-    const meanings = cardsData.map(c => c.meaning || "");
     const names = cardsData.map(c => c.name || "");
+    const indices = cardsData.map(c => c.index);
 
-    const positiveWords = ["สำเร็จ", "ดี", "สุข", "สมหวัง", "รัก", "มั่นคง", "มั่งมี", "ชัยชนะ", "เติบโต", "หวัง"];
-    const negativeWords = ["สูญเสีย", "เศร้า", "เครียด", "กังวล", "อุปสรรค", "เบื่อ", "เจ็บ", "เลิก", "ผิดหวัง"];
+    // Count positive/negative cards per topic
+    let positiveCount = 0;
+    let negativeCount = 0;
+    let specialCardsFound = [];
 
-    let posCount = 0;
-    let negCount = 0;
+    indices.forEach((idx, i) => {
+        const card = tarotDetailed[String(idx)];
+        if (!card) return;
 
-    meanings.forEach(m => {
-        if (positiveWords.some(w => m.includes(w))) posCount++;
-        if (negativeWords.some(w => m.includes(w))) negCount++;
+        const contextMeaning = getContextMeaning(idx, topic);
+        const advice = getAdvice(idx);
+
+        // Check for positive/negative indicators
+        const positiveWords = ["สำเร็จ", "ดี", "สุข", "สมหวัง", "รัก", "มั่นคง", "มั่งมี", "ชัยชนะ", "เติบโต", "หวัง", "มั่งคั่ง", "ร่ำรวย"];
+        const negativeWords = ["สูญเสีย", "เศร้า", "เครียด", "กังวล", "อุปสรรค", "เบื่อ", "เจ็บ", "เลิก", "ผิดหวัง", "ลำบาก", "ทุกข์"];
+
+        if (positiveWords.some(w => contextMeaning.includes(w))) positiveCount++;
+        if (negativeWords.some(w => contextMeaning.includes(w))) negativeCount++;
+
+        // Find special cards
+        const specialMsg = getSpecialCardMessage(names[i]);
+        if (specialMsg) {
+            specialCardsFound.push({ name: names[i], message: specialMsg });
+        }
     });
 
-    const narratives = [];
+    // Build summary
+    let summary = '';
 
-    if (spreadKey === "จั่ว 1 ใบ (ถาม-ตอบ)") {
-        if (posCount > 0) {
-            narratives.push("ไพ่ใบเดียวบ่งบอกว่าคำตอบคือ 'ใช่' สิ่งดีๆ กำลังจะเข้ามา");
-        } else {
-            narratives.push("ไพ่ใบเดียวบ่งบอกว่าควรระวัง ยังไม่ใช่เวลาที่เหมาะสม");
-        }
-    } else if (spreadKey === "จั่ว 3 ใบ (ความรัก)") {
-        narratives.push("ไพ่ความรักบ่งบอกถึงความรู้สึกที่ลึกซึ้งของทั้งสองฝ่าย");
-        if (posCount >= 2) {
-            narratives.push("ความสัมพันธ์มีโอกาสเติบโตในทิศทางที่ดี");
-        } else if (negCount >= 2) {
-            narratives.push("ควรเปิดใจคุยกันเพื่อเข้าใจความรู้สึกที่แท้จริง");
-        }
-    } else if (spreadKey === "จั่ว 4 ใบ (การงาน)") {
-        narratives.push("ไพ่การงานบ่งบอกถึงทิศทางการทำงานของคุณ");
-        if (posCount >= 2) {
-            narratives.push("มีโอกาสประสบความสำเร็จสูง ควรคว้าไว้");
-        } else if (negCount >= 2) {
-            narratives.push("มีอุปสรรค์ที่ต้องฝ่าฟัน แต่จะผ่านไปได้");
-        }
+    // Topic-specific summary
+    if (topic === "ความรัก") {
+        summary += buildLoveSummary(positiveCount, negativeCount, cardsData);
+    } else if (topic === "การงาน") {
+        summary += buildWorkSummary(positiveCount, negativeCount, cardsData);
+    } else if (topic === "การเงิน") {
+        summary += buildMoneySummary(positiveCount, negativeCount, cardsData);
+    } else if (topic === "สุขภาพ") {
+        summary += buildHealthSummary(positiveCount, negativeCount, cardsData);
     } else {
-        if (posCount >= 2) {
-            narratives.push("ไพ่บ่งบอกถึงทิศทางที่ดี สิ่งดีๆ กำลังจะเข้ามาในชีวิตของคุณ");
-        } else if (negCount >= 2) {
-            narratives.push("ไพ่บ่งบอกว่าช่วงนี้อาจมีความท้าทาย แต่จงจำไว้ว่าทุกปัญหามีทางออก");
-        } else {
-            narratives.push("ไพ่แสดงให้เห็นถึงความสมดุลในชีวิต มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง");
-        }
+        summary += buildGeneralSummary(positiveCount, negativeCount, cardsData);
     }
 
-    // Special cards
-    if (names.includes("The Star") || names.includes("The Sun")) {
-        narratives.push("ไพ่ดวงดาวและดวงอาทิตย์ส่องแสงนำทาง ความหวังและความสุขกำลังจะมาถึง");
-    } else if (names.includes("Death") || names.includes("The Tower")) {
-        narratives.push("แม้จะมีการเปลี่ยนแปลงครั้งใหญ่ แต่นั่นคือจุดเริ่มต้นของสิ่งใหม่ๆ ที่ดีกว่าเดิม");
-    } else if (names.includes("The Fool")) {
-        narratives.push("ไพ่ The Fool บอกให้ก้าวออกมาจากกรอบเดิมๆ ลองสิ่งใหม่ๆ ดูบ้าง");
-    } else if (names.includes("The Lovers")) {
-        narratives.push("ไพ่ The Lovers บ่งบอกถึงความรักและการตัดสินใจที่สำคัญ");
-    } else if (names.includes("Strength")) {
-        narratives.push("ไพ่ Strength บ่งบอกถึงความแข็งแกร่งภายใน คุณมีพลังพอที่จะฝ่าฟันทุกอย่าง");
+    // Add special cards message
+    if (specialCardsFound.length > 0) {
+        summary += '<div class="special-cards-section">';
+        summary += '<div class="special-cards-title">⭐ ไพ่พิเศษ:</div>';
+        specialCardsFound.forEach(sc => {
+            summary += `<div class="special-card-item"><strong>${sc.name}:</strong> ${sc.message}</div>`;
+        });
+        summary += '</div>';
     }
 
-    return narratives.join(" ");
+    // Add overall advice
+    summary += '<div class="overall-advice">';
+    summary += '<div class="overall-advice-title">🔮 คำแนะนำโดยรวม:</div>';
+    if (positiveCount > negativeCount) {
+        summary += '<div class="overall-advice-text">ไพ่บ่งบอกถึงทิศทางที่ดี สิ่งดีๆ กำลังจะเข้ามาในชีวิตของคุณ จงเชื่อมั่นและเดินหน้าต่อไป</div>';
+    } else if (negativeCount > positiveCount) {
+        summary += '<div class="overall-advice-text">ไพ่บ่งบอกว่าช่วงนี้อาจมีความท้าทาย แต่จงจำไว้ว่าทุกปัญหามีทางออก อดทนและสู้ต่อไป</div>';
+    } else {
+        summary += '<div class="overall-advice-text">ไพ่แสดงให้เห็นถึงความสมดุลในชีวิต มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการตัดสินใจ</div>';
+    }
+    summary += '</div>';
+
+    return summary;
+}
+
+// ========== Build Love Summary ==========
+function buildLoveSummary(pos, neg, cardsData) {
+    let summary = '<div class="summary-topic">';
+    summary += '<div class="topic-title">❤️ ด้านความรัก:</div>';
+    
+    if (pos > neg) {
+        summary += '<div class="topic-text">ความสัมพันธ์ของคุณมีแนวโน้มที่ดี มีโอกาสเติบโตในทิศทางที่ดี ความรักที่มีอยู่จะนำพาไปสู่ความสุข</div>';
+    } else if (neg > pos) {
+        summary += '<div class="topic-text">ความสัมพันธ์ของคุณอาจมีอุปสรรคบ้าง แต่เป็นโอกาสที่จะได้ทบทวนความรู้สึกของตัวเองและคนรอบข้าง</div>';
+    } else {
+        summary += '<div class="topic-text">ความสัมพันธ์ของคุณอยู่ในช่วงสมดุล มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงเปิดใจคุยกัน</div>';
+    }
+    
+    summary += '</div>';
+    return summary;
+}
+
+// ========== Build Work Summary ==========
+function buildWorkSummary(pos, neg, cardsData) {
+    let summary = '<div class="summary-topic">';
+    summary += '<div class="topic-title">💼 ด้านการงาน:</div>';
+    
+    if (pos > neg) {
+        summary += '<div class="topic-text">การทำงานของคุณมีแนวโน้มที่ดี มีโอกาสประสบความสำเร็จสูง ควรคว้าโอกาสที่เข้ามา</div>';
+    } else if (neg > pos) {
+        summary += '<div class="topic-text">การทำงานของคุณอาจมีอุปสรรคบ้าง แต่ถ้าอดทนและแก้ไขปัญหา จะผ่านไปได้</div>';
+    } else {
+        summary += '<div class="topic-text">การทำงานของคุณอยู่ในช่วงสมดุล มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการทำงาน</div>';
+    }
+    
+    summary += '</div>';
+    return summary;
+}
+
+// ========== Build Money Summary ==========
+function buildMoneySummary(pos, neg, cardsData) {
+    let summary = '<div class="summary-topic">';
+    summary += '<div class="topic-title">💰 ด้านการเงิน:</div>';
+    
+    if (pos > neg) {
+        summary += '<div class="topic-text">การเงินของคุณมีแนวโน้มที่ดี มีโอกาสได้รับเงินก้อนโต หรือการลงทุนที่คุ้มค่า</div>';
+    } else if (neg > pos) {
+        summary += '<div class="topic-text">การเงินของคุณอาจมีปัญหาบ้าง แต่ถ้าจัดการดีๆ จะผ่านไปได้ ควรวางแผนการเงินให้ดี</div>';
+    } else {
+        summary += '<div class="topic-text">การเงินของคุณอยู่ในช่วงสมดุล มีทั้งรายรับและรายจ่ายที่สมเหตุสมผล</div>';
+    }
+    
+    summary += '</div>';
+    return summary;
+}
+
+// ========== Build Health Summary ==========
+function buildHealthSummary(pos, neg, cardsData) {
+    let summary = '<div class="summary-topic">';
+    summary += '<div class="topic-title">🏥 ด้านสุขภาพ:</div>';
+    
+    if (pos > neg) {
+        summary += '<div class="topic-text">สุขภาพของคุณมีแนวโน้มที่ดี ร่างกายแข็งแรง แต่ยังต้องดูแลตัวเองต่อไป</div>';
+    } else if (neg > pos) {
+        summary += '<div class="topic-text">สุขภาพของคุณอาจมีปัญหาบ้าง ควรพักผ่อนให้เพียงพอ และดูแลตัวเองให้ดี</div>';
+    } else {
+        summary += '<div class="topic-text">สุขภาพของคุณอยู่ในช่วงสมดุล แต่ยังต้องดูแลตัวเองอย่างสม่ำเสมอ</div>';
+    }
+    
+    summary += '</div>';
+    return summary;
+}
+
+// ========== Build General Summary ==========
+function buildGeneralSummary(pos, neg, cardsData) {
+    let summary = '<div class="summary-topic">';
+    summary += '<div class="topic-title">🔮 ภาพรวม:</div>';
+    
+    if (pos > neg) {
+        summary += '<div class="topic-text">ไพ่บ่งบอกถึงทิศทางที่ดี สิ่งดีๆ กำลังจะเข้ามาในชีวิตของคุณ จงเชื่อมั่นและเดินหน้าต่อไป</div>';
+    } else if (neg > pos) {
+        summary += '<div class="topic-text">ไพ่บ่งบอกว่าช่วงนี้อาจมีความท้าทาย แต่จงจำไว้ว่าทุกปัญหามีทางออก อดทนและสู้ต่อไป</div>';
+    } else {
+        summary += '<div class="topic-text">ไพ่แสดงให้เห็นถึงความสมดุลในชีวิต มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการตัดสินใจ</div>';
+    }
+    
+    summary += '</div>';
+    return summary;
 }

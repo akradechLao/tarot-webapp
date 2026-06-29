@@ -472,6 +472,177 @@ input[type="text"]:focus {
     line-height: 1.8;
 }
 
+/* ========== Topic Badge ========== */
+.topic-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.2), rgba(139, 90, 139, 0.2));
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    color: var(--gold-light);
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* ========== Meaning Sections ========== */
+.meaning-section {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(201, 168, 76, 0.08);
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+}
+
+.meaning-label {
+    color: var(--gold);
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.meaning-text {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.context-section {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(139, 90, 139, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--rose);
+}
+
+.context-label {
+    color: var(--rose);
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.context-text {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.advice-section {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(184, 169, 201, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--lavender);
+}
+
+.advice-label {
+    color: var(--lavender);
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.advice-text {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+/* ========== Special Card ========== */
+.special-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.15), rgba(232, 212, 139, 0.1));
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+}
+
+.special-icon {
+    font-size: 1.1em;
+}
+
+.special-text {
+    color: var(--gold-light);
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+/* ========== Summary Sections ========== */
+.summary-topic {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(45, 27, 78, 0.4);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.topic-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+}
+
+.topic-text {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.special-cards-section {
+    margin-top: 16px;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.1), rgba(232, 212, 139, 0.05));
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+}
+
+.special-cards-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 8px;
+}
+
+.special-card-item {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.6;
+    margin-bottom: 6px;
+    padding-left: 12px;
+    border-left: 2px solid var(--gold);
+}
+
+.special-card-item strong {
+    color: var(--gold-light);
+}
+
+.overall-advice {
+    margin-top: 16px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(139, 90, 139, 0.15), rgba(184, 169, 201, 0.1));
+    border-radius: 10px;
+    border: 1px solid var(--border-strong);
+}
+
+.overall-advice-title {
+    color: var(--lavender);
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 8px;
+}
+
+.overall-advice-text {
+    color: var(--cream);
+    font-size: 0.9em;
+    line-height: 1.7;
+}
+
 /* ========== Footer ========== */
 footer {
     text-align: center;
