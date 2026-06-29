@@ -1,0 +1,556 @@
+/* ========== Mystical Night Theme ========== */
+:root {
+    --bg-deep: #0D0B21;
+    --bg-royal: #2D1B4E;
+    --bg-panel: rgba(45, 27, 78, 0.85);
+    --bg-card: rgba(45, 27, 78, 0.7);
+    --bg-input: rgba(26, 20, 48, 0.9);
+    --gold: #C9A84C;
+    --gold-light: #E8D48B;
+    --gold-dark: #A07E2C;
+    --lavender: #B8A9C9;
+    --cream: #F5F0E8;
+    --cream-dark: #D4C9BF;
+    --rose: #8B5A8B;
+    --shadow: #1A1430;
+    --border: rgba(201, 168, 76, 0.3);
+    --border-strong: rgba(201, 168, 76, 0.6);
+    --glow-gold: 0 0 20px rgba(201, 168, 76, 0.4);
+    --glow-purple: 0 0 30px rgba(139, 90, 139, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ========== Animated Background ========== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-deep) 0%, #151030 50%, var(--bg-royal) 100%);
+    min-height: 100vh;
+    color: var(--cream);
+    overflow-x: hidden;
+    position: relative;
+}
+
+.stars, .twinkling {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.stars {
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="25" cy="25" r="1" fill="%23C9A84C" opacity="0.5"/><circle cx="75" cy="60" r="0.8" fill="%23B8A9C9" opacity="0.4"/><circle cx="150" cy="30" r="1.2" fill="%23C9A84C" opacity="0.6"/><circle cx="100" cy="100" r="0.6" fill="%23F5F0E8" opacity="0.3"/><circle cx="40" cy="150" r="1" fill="%23B8A9C9" opacity="0.5"/><circle cx="180" cy="120" r="0.9" fill="%23C9A84C" opacity="0.4"/><circle cx="60" cy="180" r="1.1" fill="%23F5F0E8" opacity="0.5"/><circle cx="130" cy="170" r="0.7" fill="%23C9A84C" opacity="0.3"/><circle cx="20" cy="90" r="0.8" fill="%23B8A9C9" opacity="0.6"/><circle cx="170" cy="180" r="1" fill="%23C9A84C" opacity="0.5"/></svg>') repeat;
+    animation: twinkle 8s ease-in-out infinite;
+    opacity: 0.6;
+}
+
+.twinkling {
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><circle cx="50" cy="50" r="1.5" fill="%23C9A84C" opacity="0.3"/><circle cx="150" cy="80" r="1" fill="%23B8A9C9" opacity="0.4"/><circle cx="250" cy="40" r="1.2" fill="%23F5F0E8" opacity="0.3"/><circle cx="100" cy="200" r="0.8" fill="%23C9A84C" opacity="0.5"/><circle cx="200" cy="250" r="1.3" fill="%23B8A9C9" opacity="0.4"/><circle cx="80" cy="150" r="1" fill="%23C9A84C" opacity="0.3"/></svg>') repeat;
+    animation: twinkle 12s ease-in-out infinite reverse;
+    opacity: 0.4;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+/* ========== Container ========== */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========== Header ========== */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 30px 20px;
+    background: var(--bg-panel);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--glow-purple);
+}
+
+.logo {
+    font-size: 60px;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+h1 {
+    font-size: 2.2em;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: var(--lavender);
+    font-size: 1em;
+    font-style: italic;
+}
+
+/* ========== Main ========== */
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ========== Controls Section ========== */
+.controls-section {
+    background: var(--bg-panel);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+}
+
+.control-group {
+    margin-bottom: 18px;
+}
+
+.control-group:last-of-type {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    color: var(--gold);
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+select {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    font-size: 0.95em;
+    color: var(--cream);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+}
+
+.select-wrapper::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    pointer-events: none;
+    font-size: 1.2em;
+}
+
+select option {
+    background: var(--bg-deep);
+    color: var(--cream);
+    padding: 10px;
+}
+
+.card-count {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--gold-light);
+    font-weight: bold;
+    font-size: 0.95em;
+    padding: 4px 12px;
+    background: rgba(201, 168, 76, 0.15);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 0.95em;
+    color: var(--cream);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]::placeholder {
+    color: var(--lavender);
+    opacity: 0.6;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+}
+
+/* ========== Draw Button ========== */
+.draw-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 16px 40px;
+    font-size: 1.15em;
+    font-weight: bold;
+    color: var(--bg-deep);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+    letter-spacing: 1px;
+}
+
+.draw-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(201, 168, 76, 0.6);
+}
+
+.draw-button:active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    font-size: 1.3em;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* ========== Cards Section ========== */
+.cards-section {
+    background: var(--bg-panel);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.card-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    width: 120px;
+    transition: all 0.3s ease;
+    animation: cardAppear 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes cardAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+}
+
+.card-item img {
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.card-item:hover img {
+    border-color: var(--gold);
+}
+
+.card-item .card-name {
+    font-size: 0.7em;
+    color: var(--cream);
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.3;
+    max-height: 2.6em;
+    overflow: hidden;
+}
+
+.card-item .card-position {
+    font-size: 0.65em;
+    color: var(--gold);
+    font-style: italic;
+    text-align: center;
+}
+
+/* ========== Prediction Section ========== */
+.prediction-section {
+    background: var(--bg-panel);
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--glow-purple);
+}
+
+.prediction-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3em;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.title-icon {
+    font-size: 1.2em;
+    -webkit-text-fill-color: initial;
+}
+
+.prediction-content {
+    color: var(--cream);
+    font-size: 0.95em;
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+.prediction-content .placeholder-text {
+    color: var(--lavender);
+    opacity: 0.6;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.prediction-content .prediction-question {
+    color: var(--gold-light);
+    font-style: italic;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: rgba(201, 168, 76, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+}
+
+.prediction-content .prediction-spread {
+    color: var(--lavender);
+    margin-bottom: 16px;
+    font-size: 0.9em;
+}
+
+.prediction-content .prediction-card {
+    margin-bottom: 18px;
+    padding: 14px;
+    background: rgba(45, 27, 78, 0.5);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.prediction-content .card-position-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+}
+
+.prediction-content .card-prompt {
+    color: var(--cream);
+    margin-bottom: 4px;
+}
+
+.prediction-content .card-name-highlight {
+    color: var(--gold-light);
+    font-weight: bold;
+}
+
+.prediction-content .card-meaning {
+    color: var(--lavender);
+    font-size: 0.9em;
+    padding-left: 12px;
+    border-left: 2px solid var(--rose);
+    margin-top: 6px;
+}
+
+.prediction-content .card-extended {
+    color: var(--cream-dark);
+    font-style: italic;
+    font-size: 0.88em;
+    padding-left: 12px;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+.prediction-content .prediction-summary {
+    margin-top: 24px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.1), rgba(139, 90, 139, 0.1));
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+}
+
+.prediction-content .summary-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 1.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prediction-content .summary-text {
+    color: var(--cream);
+    line-height: 1.8;
+}
+
+/* ========== Footer ========== */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    color: var(--lavender);
+    opacity: 0.7;
+    font-size: 0.85em;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
+    }
+
+    h1 {
+        font-size: 1.6em;
+    }
+
+    .card-item {
+        width: 100px;
+    }
+
+    .card-item img {
+        width: 80px;
+        height: 120px;
+    }
+
+    .controls-section {
+        padding: 18px;
+    }
+
+    .prediction-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-item {
+        width: 85px;
+    }
+
+    .card-item img {
+        width: 65px;
+        height: 100px;
+    }
+
+    .card-item .card-name {
+        font-size: 0.6em;
+    }
+
+    .draw-button {
+        font-size: 1em;
+        padding: 14px 30px;
+    }
+}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--rose);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold);
+}
+
+/* ========== Selection ========== */
+::selection {
+    background: var(--gold);
+    color: var(--bg-deep);
+}

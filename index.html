@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot Card Reader - ทำนายดวงด้วยไพ่ทาโรต์</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">&#128302;</div>
+            <h1>Tarot Card Reader</h1>
+            <p class="subtitle">เปิดรับคำทำนายจากไพ่ทาโรต์</p>
+        </header>
+
+        <main>
+            <!-- Controls Section -->
+            <section class="controls-section">
+                <div class="control-group">
+                    <label for="spread-select">เลือกรูปแบบการทำนาย:</label>
+                    <div class="select-wrapper">
+                        <select id="spread-select">
+                            <option value="จั่ว 1 ใบ (ถาม-ตอบ)">จั่ว 1 ใบ (ถาม-ตอบ)</option>
+                            <option value="จั่ว 3 ใบ (อดีต/ปัจจุบัน/อนาคต)" selected>จั่ว 3 ใบ (อดีต/ปัจจุบัน/อนาคต)</option>
+                            <option value="จั่ว 3 ใบ (สถานการณ์/อุปสรรค์/คำแนะนำ)">จั่ว 3 ใบ (สถานการณ์/อุปสรรค์/คำแนะนำ)</option>
+                            <option value="จั่ว 3 ใบ (คุณ/คู่/ความสัมพันธ์)">จั่ว 3 ใบ (คุณ/คู่/ความสัมพันธ์)</option>
+                            <option value="จั่ว 3 ใบ (ความรัก)">จั่ว 3 ใบ (ความรัก)</option>
+                            <option value="จั่ว 4 ใบ (การงาน)">จั่ว 4 ใบ (การงาน)</option>
+                            <option value="จั่ว 5 ใบ (Cross)">จั่ว 5 ใบ (Cross)</option>
+                            <option value="จั่ว 7 ใบ (Horseshoe)">จั่ว 7 ใบ (Horseshoe)</option>
+                            <option value="จั่ว 10 ใบ (Celtic Cross)">จั่ว 10 ใบ (Celtic Cross)</option>
+                        </select>
+                    </div>
+                    <span class="card-count" id="card-count">3 ใบ</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="question-input">พิมพ์คำถาม (เว้นว่างเพื่อสุ่มทั่วไป):</label>
+                    <input type="text" id="question-input" placeholder="เช่น ความรักจะเป็นอย่างไร? / งานที่ทำจะสำเร็จไหม?">
+                </div>
+
+                <button id="draw-btn" class="draw-button">
+                    <span class="btn-icon">&#128302;</span>
+                    เสี่ยงทายไพ่
+                </button>
+            </section>
+
+            <!-- Cards Display Section -->
+            <section class="cards-section" id="cards-section">
+                <div class="cards-container" id="cards-container">
+                    <!-- Cards will be inserted here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Prediction Section -->
+            <section class="prediction-section" id="prediction-section">
+                <h2 class="prediction-title">
+                    <span class="title-icon">&#128172;</span>
+                    คำทำนายจากไพ่
+                </h2>
+                <div class="prediction-content" id="prediction-content">
+                    <p class="placeholder-text">&#128302; เลือกรูปแบบการทำนายแล้วกด "เสี่ยงทายไพ่" เพื่อรับคำทำนาย</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&#128302; Tarot Card Reader &copy; 2026 &#128302;</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
