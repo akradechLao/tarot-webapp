@@ -643,6 +643,109 @@ input[type="text"]:focus {
     line-height: 1.7;
 }
 
+/* ========== Summary Intro ========== */
+.summary-intro {
+    margin-bottom: 20px;
+}
+
+.summary-header {
+    color: var(--cream);
+    font-size: 1em;
+    line-height: 1.8;
+    font-style: italic;
+}
+
+/* ========== Card Story ========== */
+.summary-cards-story {
+    margin-bottom: 20px;
+}
+
+.card-story-item {
+    margin-bottom: 16px;
+    padding: 14px;
+    background: rgba(45, 27, 78, 0.5);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+}
+
+.card-story-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 8px;
+}
+
+.card-story-text {
+    color: var(--cream);
+    font-size: 0.92em;
+    line-height: 1.8;
+    padding-left: 8px;
+}
+
+/* ========== Summary Divider ========== */
+.summary-divider {
+    text-align: center;
+    color: var(--gold);
+    opacity: 0.5;
+    margin: 24px 0;
+    font-size: 0.9em;
+    letter-spacing: 2px;
+}
+
+/* ========== Main Story ========== */
+.summary-main-story {
+    margin-bottom: 24px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.08), rgba(139, 90, 139, 0.08));
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.main-story-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 14px;
+}
+
+.main-story-text {
+    color: var(--cream);
+    font-size: 0.95em;
+    line-height: 2;
+}
+
+.main-story-text strong {
+    color: var(--gold-light);
+}
+
+/* ========== Summary Advice Section ========== */
+.summary-advice-section {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: rgba(139, 90, 139, 0.12);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.summary-advice-section .advice-title {
+    color: var(--lavender);
+    font-weight: bold;
+    font-size: 1em;
+    margin-bottom: 12px;
+}
+
+.summary-advice-section .overall-advice-text {
+    color: var(--cream);
+    font-size: 0.92em;
+    line-height: 1.9;
+}
+
+.summary-advice-section .overall-advice-text em {
+    color: var(--gold-light);
+    font-style: italic;
+}
+
 /* ========== Footer ========== */
 footer {
     text-align: center;

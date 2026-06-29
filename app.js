@@ -388,157 +388,274 @@ function getSpecialCardMessage(cardName) {
 
 // ========== Generate Summary ==========
 function generateSummary(cardsData, topic, question, spreadKey) {
-    const names = cardsData.map(c => c.name || "");
-    const indices = cardsData.map(c => c.index);
+    const spread = SPREADS[spreadKey];
+    const positions = spread.positions;
+    const descriptions = spread.descriptions;
+    
+    // Collect card data
+    const cardInfos = cardsData.map((card, i) => ({
+        name: card.name || "Unknown",
+        index: card.index,
+        position: positions[i] || "",
+        description: descriptions[i] || "",
+        meaning: getFullMeaning(card.index) || card.meaning || "",
+        contextMeaning: getContextMeaning(card.index, topic) || "",
+        advice: getAdvice(card.index) || "",
+        specialMessage: getSpecialCardMessage(card.name) || ""
+    }));
 
-    // Count positive/negative cards per topic
+    // Start summary
+    let summary = '';
+    
+    // Header
+    summary += `<div class="summary-intro">`;
+    summary += `<div class="summary-header">จากไพ่ ${cardsData.length} ใบ ที่จั่วได้ในรูปแบบ ${spreadKey} บ่งบอกเรื่องราวว่า:</div>`;
+    summary += `</div>`;
+
+    // Card-by-card story
+    summary += `<div class="summary-cards-story">`;
+    cardInfos.forEach((card, i) => {
+        summary += `<div class="card-story-item">`;
+        summary += `<div class="card-story-title">▸ ${card.position} (ไพ่ ${card.name}):</div>`;
+        
+        // Generate context-aware sentence
+        const storySentence = generateCardStory(card, topic, i, cardInfos.length);
+        summary += `<div class="card-story-text">${storySentence}</div>`;
+        
+        summary += `</div>`;
+    });
+    summary += `</div>`;
+
+    // Divider
+    summary += `<div class="summary-divider">━━━━━━━━━━━━━━━━━━━━━━━</div>`;
+
+    // Main story
+    summary += `<div class="summary-main-story">`;
+    summary += `<div class="main-story-title">🔮 บทสรุปเรื่องราว:</div>`;
+    summary += generateMainStory(cardInfos, topic, spreadKey);
+    summary += `</div>`;
+
+    // Overall advice
+    summary += `<div class="summary-advice-section">`;
+    summary += `<div class="advice-title">💫 คำแนะนำจากไพ่:</div>`;
+    summary += generateOverallAdvice(cardInfos, topic);
+    summary += `</div>`;
+
+    // Special cards
+    const specialCards = cardInfos.filter(c => c.specialMessage);
+    if (specialCards.length > 0) {
+        summary += `<div class="special-cards-section">`;
+        summary += `<div class="special-cards-title">⭐ ไพ่สำคัญ:</div>`;
+        specialCards.forEach(sc => {
+            summary += `<div class="special-card-item"><strong>${sc.name}:</strong> ${sc.specialMessage}</div>`;
+        });
+        summary += `</div>`;
+    }
+
+    return summary;
+}
+
+// ========== Generate Card Story ==========
+function generateCardStory(card, topic, index, totalCards) {
+    const name = card.name;
+    const meaning = card.meaning;
+    const contextMeaning = card.contextMeaning;
+    const position = card.position;
+    
+    // Position-specific sentence starters
+    const starters = {
+        "อดีต": "ในอดีต ไพ่ใบนี้บ่งบอกว่า",
+        "ปัจจุบัน": "ณ ตอนนี้ ไพ่ใบนี้กำลังบอกว่า",
+        "อนาคต": "ในอนาคตอันใกล้ ไพ่ใบนี้บ่งบอกว่า",
+        "สถานการณ์": "สถานการณ์ปัจจุบันของคุณคือ",
+        "อุปสรรค์": "อุปสรรค์ที่ต้องเผชิญคือ",
+        "คำแนะนำ": "ไพ่แนะนำว่า",
+        "คุณ": "ตัวคุณเองกำลังรู้สึกว่า",
+        "คู่ของคุณ": "อีกฝ่ายกำลังรู้สึกว่า",
+        "ความสัมพันธ์": "ความสัมพันธ์ของคุณกำลังดำเนินไปในทิศทาง",
+        "ผลลัพธ์": "ผลลัพธ์สุดท้ายจะเป็น",
+        "ปัญหา": "ปัญหาหลักที่ต้องแก้ไขคือ",
+        "โอกาส": "โอกาสที่มีอยู่คือ",
+        "ความรู้สึกคุณ": "ลึกๆ แล้วคุณรู้สึกว่า",
+        "ความรู้สึกอีกฝ่าย": "อีกฝ่ายกำลังรู้สึกว่า",
+        "อนาคตความสัมพันธ์": "ความสัมพันธ์จะไปในทิศทาง",
+        "สถานการณ์งาน": "สถานการณ์การทำงานตอนนี้คือ",
+        "สิ่งที่ควรรู้": "สิ่งสำคัญที่ควรรู้คือ",
+        "อุปสรรค์/ความท้าทาย": "อุปสรรค์และความท้าทายคือ",
+        "จิตใจที่ซ่อนอยู่": "สิ่งที่ซ่อนอยู่ในใจคือ",
+        "สิ่งที่กำลังจะเกิด": "สิ่งที่กำลังจะเกิดขึ้นคือ",
+        "อนาคตใกล้": "อนาคตอันใกล้จะเป็น",
+        "อนาคตไกล": "อนาคตไกลจะเป็น",
+        "ทัศนคติของคุณ": "วิธีที่คุณมองปัญหาคือ",
+        "สภาพแวดล้อม": "สภาพแวดล้อมและคนรอบข้าง",
+        "ความหวัง/ความกลัว": "ความหวังและความกลัวของคุณคือ",
+        "ผลลัพธ์สุดท้าย": "ผลลัพธ์สุดท้ายจะเป็น"
+    };
+    
+    // Find matching starter
+    let starter = "";
+    for (const [key, value] of Object.entries(starters)) {
+        if (position.includes(key)) {
+            starter = value;
+            break;
+        }
+    }
+    
+    // Default starter if no match
+    if (!starter) {
+        starter = "ไพ่ใบนี้บ่งบอกว่า";
+    }
+    
+    // Use context meaning if available, otherwise use general meaning
+    const mainMeaning = contextMeaning || meaning;
+    
+    // Generate full sentence
+    if (topic === "ทั่วไป") {
+        return `${starter} ${mainMeaning}`;
+    } else {
+        return `${starter} ${mainMeaning}`;
+    }
+}
+
+// ========== Generate Main Story ==========
+function generateMainStory(cardInfos, topic, spreadKey) {
+    let story = '<div class="main-story-text">';
+    
+    // Topic-specific opening
+    const topicOpenings = {
+        "ความรัก": "เรื่องราวความรักของคุณ ",
+        "การงาน": "เส้นทางการทำงานของคุณ ",
+        "การเงิน": "สถานะการเงินของคุณ ",
+        "สุขภาพ": "สุขภาพของคุณ ",
+        "การเดินทาง": "การเดินทางของคุณ ",
+        "ทั่วไป": "ชีวิตของคุณ "
+    };
+    
+    story += topicOpenings[topic] || "ชีวิตของคุณ ";
+    
+    // Generate story based on positions
+    if (spreadKey.includes("อดีต/ปัจจุบัน/อนาคต")) {
+        // Past/Present/Future spread
+        const past = cardInfos[0];
+        const present = cardInfos[1];
+        const future = cardInfos[2];
+        
+        story += `เริ่มต้นจาก${past.position} ไพ่ ${past.name} บ่งบอกว่า${past.contextMeaning || past.meaning} `;
+        story += `มาสู่${present.position} ไพ่ ${present.name} กำลังบอกว่า${present.contextMeaning || present.meaning} `;
+        story += `และจะนำไปสู่${future.position} ไพ่ ${future.name} บ่งบอกว่า${future.contextMeaning || future.meaning}`;
+    } else if (spreadKey.includes("ความรัก")) {
+        // Love spread
+        const self = cardInfos[0];
+        const partner = cardInfos[1];
+        const future = cardInfos[2];
+        
+        story += `เริ่มจากตัวคุณเอง ไพ่ ${self.name} บ่งบอกว่า${self.contextMeaning || self.meaning} `;
+        story += `ส่วนอีกฝ่าย ไพ่ ${partner.name} กำลังรู้สึกว่า${partner.contextMeaning || partner.meaning} `;
+        story += `และในอนาคต ไพ่ ${future.name} บ่งบอกว่า${future.contextMeaning || future.meaning}`;
+    } else if (spreadKey.includes("การงาน")) {
+        // Work spread
+        const situation = cardInfos[0];
+        const problem = cardInfos[1];
+        const opportunity = cardInfos[2];
+        const result = cardInfos[3];
+        
+        story += `เริ่มจากสถานการณ์ ไพ่ ${situation.name} บ่งบอกว่า${situation.contextMeaning || situation.meaning} `;
+        story += `ปัญหาที่ต้องแก้ไขคือ ไพ่ ${problem.name} บ่งบอกว่า${problem.contextMeaning || problem.meaning} `;
+        story += `โอกาสที่มีอยู่คือ ไพ่ ${opportunity.name} บ่งบอกว่า${opportunity.contextMeaning || opportunity.meaning} `;
+        story += `และผลลัพธ์จะเป็น ไพ่ ${result.name} บ่งบอกว่า${result.contextMeaning || result.meaning}`;
+    } else {
+        // General - connect all cards
+        cardInfos.forEach((card, i) => {
+            if (i === 0) {
+                story += `เริ่มจาก${card.position} ไพ่ ${card.name} บ่งบอกว่า${card.contextMeaning || card.meaning} `;
+            } else if (i === cardInfos.length - 1) {
+                story += `และสุดท้าย${card.position} ไพ่ ${card.name} บ่งบอกว่า${card.contextMeaning || card.meaning}`;
+            } else {
+                story += `มาสู่${card.position} ไพ่ ${card.name} กำลังบอกว่า${card.contextMeaning || card.meaning} `;
+            }
+        });
+    }
+    
+    // Add overall interpretation
+    story += `<br><br>`;
+    
+    // Count positive/negative
+    const positiveWords = ["สำเร็จ", "ดี", "สุข", "สมหวัง", "รัก", "มั่นคง", "มั่งมี", "ชัยชนะ", "เติบโต", "หวัง", "มั่งคั่ง", "ร่ำรวย", "สดใส"];
+    const negativeWords = ["สูญเสีย", "เศร้า", "เครียด", "กังวล", "อุปสรรค", "เบื่อ", "เจ็บ", "เลิก", "ผิดหวัง", "ลำบาก", "ทุกข์", "ยากลำบาก"];
+    
     let positiveCount = 0;
     let negativeCount = 0;
-    let specialCardsFound = [];
-
-    indices.forEach((idx, i) => {
-        const card = tarotDetailed[String(idx)];
-        if (!card) return;
-
-        const contextMeaning = getContextMeaning(idx, topic);
-        const advice = getAdvice(idx);
-
-        // Check for positive/negative indicators
-        const positiveWords = ["สำเร็จ", "ดี", "สุข", "สมหวัง", "รัก", "มั่นคง", "มั่งมี", "ชัยชนะ", "เติบโต", "หวัง", "มั่งคั่ง", "ร่ำรวย"];
-        const negativeWords = ["สูญเสีย", "เศร้า", "เครียด", "กังวล", "อุปสรรค", "เบื่อ", "เจ็บ", "เลิก", "ผิดหวัง", "ลำบาก", "ทุกข์"];
-
-        if (positiveWords.some(w => contextMeaning.includes(w))) positiveCount++;
-        if (negativeWords.some(w => contextMeaning.includes(w))) negativeCount++;
-
-        // Find special cards
-        const specialMsg = getSpecialCardMessage(names[i]);
-        if (specialMsg) {
-            specialCardsFound.push({ name: names[i], message: specialMsg });
-        }
+    
+    cardInfos.forEach(card => {
+        const meaning = card.contextMeaning || card.meaning;
+        if (positiveWords.some(w => meaning.includes(w))) positiveCount++;
+        if (negativeWords.some(w => meaning.includes(w))) negativeCount++;
     });
-
-    // Build summary
-    let summary = '';
-
-    // Topic-specific summary
-    if (topic === "ความรัก") {
-        summary += buildLoveSummary(positiveCount, negativeCount, cardsData);
-    } else if (topic === "การงาน") {
-        summary += buildWorkSummary(positiveCount, negativeCount, cardsData);
-    } else if (topic === "การเงิน") {
-        summary += buildMoneySummary(positiveCount, negativeCount, cardsData);
-    } else if (topic === "สุขภาพ") {
-        summary += buildHealthSummary(positiveCount, negativeCount, cardsData);
-    } else {
-        summary += buildGeneralSummary(positiveCount, negativeCount, cardsData);
-    }
-
-    // Add special cards message
-    if (specialCardsFound.length > 0) {
-        summary += '<div class="special-cards-section">';
-        summary += '<div class="special-cards-title">⭐ ไพ่พิเศษ:</div>';
-        specialCardsFound.forEach(sc => {
-            summary += `<div class="special-card-item"><strong>${sc.name}:</strong> ${sc.message}</div>`;
-        });
-        summary += '</div>';
-    }
-
-    // Add overall advice
-    summary += '<div class="overall-advice">';
-    summary += '<div class="overall-advice-title">🔮 คำแนะนำโดยรวม:</div>';
+    
+    // Overall interpretation
+    story += `<strong>โดยภาพรวม:</strong> `;
+    
     if (positiveCount > negativeCount) {
-        summary += '<div class="overall-advice-text">ไพ่บ่งบอกถึงทิศทางที่ดี สิ่งดีๆ กำลังจะเข้ามาในชีวิตของคุณ จงเชื่อมั่นและเดินหน้าต่อไป</div>';
+        story += `ไพ่ทั้งหมดบ่งบอกว่าเส้นทางของคุณมีแนวโน้มที่ดี สิ่งที่คุณกำลังเผชิญอยู่จะนำไปสู่ผลลัพธ์ที่น่าพอใจ จงเชื่อมั่นในเส้นทางที่เลือกและเดินหน้าต่อไป`;
     } else if (negativeCount > positiveCount) {
-        summary += '<div class="overall-advice-text">ไพ่บ่งบอกว่าช่วงนี้อาจมีความท้าทาย แต่จงจำไว้ว่าทุกปัญหามีทางออก อดทนและสู้ต่อไป</div>';
+        story += `ไพ่ทั้งหมดบ่งบอกว่าช่วงนี้อาจมีความท้าทายและอุปสรรคบ้าง แต่จงจำไว้ว่าทุกปัญหามีทางออก อดทนและสู้ต่อไป แล้วจะผ่านไปได้`;
     } else {
-        summary += '<div class="overall-advice-text">ไพ่แสดงให้เห็นถึงความสมดุลในชีวิต มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการตัดสินใจ</div>';
+        story += `ไพ่ทั้งหมดบ่งบอกถึงความสมดุล มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการตัดสินใจและไม่ประมาท`;
     }
-    summary += '</div>';
-
-    return summary;
+    
+    story += '</div>';
+    return story;
 }
 
-// ========== Build Love Summary ==========
-function buildLoveSummary(pos, neg, cardsData) {
-    let summary = '<div class="summary-topic">';
-    summary += '<div class="topic-title">❤️ ด้านความรัก:</div>';
+// ========== Generate Overall Advice ==========
+function generateOverallAdvice(cardInfos, topic) {
+    let advice = '<div class="overall-advice-text">';
     
-    if (pos > neg) {
-        summary += '<div class="topic-text">ความสัมพันธ์ของคุณมีแนวโน้มที่ดี มีโอกาสเติบโตในทิศทางที่ดี ความรักที่มีอยู่จะนำพาไปสู่ความสุข</div>';
-    } else if (neg > pos) {
-        summary += '<div class="topic-text">ความสัมพันธ์ของคุณอาจมีอุปสรรคบ้าง แต่เป็นโอกาสที่จะได้ทบทวนความรู้สึกของตัวเองและคนรอบข้าง</div>';
-    } else {
-        summary += '<div class="topic-text">ความสัมพันธ์ของคุณอยู่ในช่วงสมดุล มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงเปิดใจคุยกัน</div>';
+    // Collect all advices
+    const advices = cardInfos.map(c => c.advice).filter(a => a);
+    
+    // Topic-specific advice intro
+    const topicIntros = {
+        "ความรัก": "จากไพ่ทั้งหมด คำแนะนำในเรื่องความรักคือ",
+        "การงาน": "จากไพ่ทั้งหมด คำแนะนำในเรื่องการงานคือ",
+        "การเงิน": "จากไพ่ทั้งหมด คำแนะนำในเรื่องการเงินคือ",
+        "สุขภาพ": "จากไพ่ทั้งหมด คำแนะนำในเรื่องสุขภาพคือ",
+        "การเดินทาง": "จากไพ่ทั้งหมด คำแนะนำในการเดินทางคือ",
+        "ทั่วไป": "จากไพ่ทั้งหมด คำแนะนำคือ"
+    };
+    
+    advice += topicIntros[topic] || "จากไพ่ทั้งหมด คำแนะนำคือ ";
+    advice += '<br><br>';
+    
+    // Main advice - pick the most relevant one
+    if (advices.length > 0) {
+        // Find the most common advice theme
+        const mainAdvice = advices[0];
+        advice += `<em>"${mainAdvice}"</em>`;
     }
     
-    summary += '</div>';
-    return summary;
-}
-
-// ========== Build Work Summary ==========
-function buildWorkSummary(pos, neg, cardsData) {
-    let summary = '<div class="summary-topic">';
-    summary += '<div class="topic-title">💼 ด้านการงาน:</div>';
-    
-    if (pos > neg) {
-        summary += '<div class="topic-text">การทำงานของคุณมีแนวโน้มที่ดี มีโอกาสประสบความสำเร็จสูง ควรคว้าโอกาสที่เข้ามา</div>';
-    } else if (neg > pos) {
-        summary += '<div class="topic-text">การทำงานของคุณอาจมีอุปสรรคบ้าง แต่ถ้าอดทนและแก้ไขปัญหา จะผ่านไปได้</div>';
-    } else {
-        summary += '<div class="topic-text">การทำงานของคุณอยู่ในช่วงสมดุล มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการทำงาน</div>';
+    // Add supporting advice
+    if (advices.length > 1) {
+        advice += '<br><br>';
+        advice += 'นอกจากนี้ ไพ่ยังเสริมว่า ';
+        const supportingAdvice = advices.slice(1, 3).join(' และ ');
+        advice += supportingAdvice;
     }
     
-    summary += '</div>';
-    return summary;
-}
-
-// ========== Build Money Summary ==========
-function buildMoneySummary(pos, neg, cardsData) {
-    let summary = '<div class="summary-topic">';
-    summary += '<div class="topic-title">💰 ด้านการเงิน:</div>';
+    // Add topic-specific conclusion
+    advice += '<br><br>';
     
-    if (pos > neg) {
-        summary += '<div class="topic-text">การเงินของคุณมีแนวโน้มที่ดี มีโอกาสได้รับเงินก้อนโต หรือการลงทุนที่คุ้มค่า</div>';
-    } else if (neg > pos) {
-        summary += '<div class="topic-text">การเงินของคุณอาจมีปัญหาบ้าง แต่ถ้าจัดการดีๆ จะผ่านไปได้ ควรวางแผนการเงินให้ดี</div>';
-    } else {
-        summary += '<div class="topic-text">การเงินของคุณอยู่ในช่วงสมดุล มีทั้งรายรับและรายจ่ายที่สมเหตุสมผล</div>';
-    }
+    const topicConclusions = {
+        "ความรัก": "จงเชื่อมั่นในความรัก เปิดใจรับความรักที่เข้ามา และดูแลความสัมพันธ์นี้ให้ดี เพราะไพ่บ่งบอกว่าคุณกำลังอยู่บนเส้นทางที่ถูกต้อง",
+        "การงาน": "จงมุ่งมั่นในการทำงาน ใช้ความสามารถของตัวเองให้เต็มที่ และอย่ากลัวการเปลี่ยนแปลง เพราะไพ่บ่งบอกว่าความสำเร็จรออยู่ข้างหน้า",
+        "การเงิน": "จงบริหารจัดการการเงินอย่างรอบคอบ อย่ารีบร้อนตัดสินใจ และวางแผนการเงินให้ดี เพราะไพ่บ่งบอกว่าความมั่นคงจะมาถึง",
+        "สุขภาพ": "จงดูแลสุขภาพของตัวเอง อย่าละเลยสัญญาณเตือน และพักผ่อนให้เพียงพอ เพราะไพ่บ่งบอกว่าสุขภาพที่ดีจะนำพาไปสู่ชีวิตที่มีความสุข",
+        "การเดินทาง": "จงเปิดใจรับการเดินทาง อย่ากลัวสิ่งใหม่ๆ และเตรียมตัวให้ดี เพราะไพ่บ่งบอกว่าการเดินทางจะนำพาไปสู่ประสบการณ์ที่มีค่า",
+        "ทั่วไป": "จงเชื่อมั่นในตัวเอง ใช้สติในการตัดสินใจ และไม่กลัวการเปลี่ยนแปลง เพราะไพ่บ่งบอกว่าทุกอย่างจะดีขึ้น"
+    };
     
-    summary += '</div>';
-    return summary;
-}
-
-// ========== Build Health Summary ==========
-function buildHealthSummary(pos, neg, cardsData) {
-    let summary = '<div class="summary-topic">';
-    summary += '<div class="topic-title">🏥 ด้านสุขภาพ:</div>';
+    advice += topicConclusions[topic] || topicConclusions["ทั่วไป"];
     
-    if (pos > neg) {
-        summary += '<div class="topic-text">สุขภาพของคุณมีแนวโน้มที่ดี ร่างกายแข็งแรง แต่ยังต้องดูแลตัวเองต่อไป</div>';
-    } else if (neg > pos) {
-        summary += '<div class="topic-text">สุขภาพของคุณอาจมีปัญหาบ้าง ควรพักผ่อนให้เพียงพอ และดูแลตัวเองให้ดี</div>';
-    } else {
-        summary += '<div class="topic-text">สุขภาพของคุณอยู่ในช่วงสมดุล แต่ยังต้องดูแลตัวเองอย่างสม่ำเสมอ</div>';
-    }
-    
-    summary += '</div>';
-    return summary;
-}
-
-// ========== Build General Summary ==========
-function buildGeneralSummary(pos, neg, cardsData) {
-    let summary = '<div class="summary-topic">';
-    summary += '<div class="topic-title">🔮 ภาพรวม:</div>';
-    
-    if (pos > neg) {
-        summary += '<div class="topic-text">ไพ่บ่งบอกถึงทิศทางที่ดี สิ่งดีๆ กำลังจะเข้ามาในชีวิตของคุณ จงเชื่อมั่นและเดินหน้าต่อไป</div>';
-    } else if (neg > pos) {
-        summary += '<div class="topic-text">ไพ่บ่งบอกว่าช่วงนี้อาจมีความท้าทาย แต่จงจำไว้ว่าทุกปัญหามีทางออก อดทนและสู้ต่อไป</div>';
-    } else {
-        summary += '<div class="topic-text">ไพ่แสดงให้เห็นถึงความสมดุลในชีวิต มีทั้งสิ่งที่ดีและสิ่งที่ต้องระวัง จงใช้สติในการตัดสินใจ</div>';
-    }
-    
-    summary += '</div>';
-    return summary;
+    advice += '</div>';
+    return advice;
 }
